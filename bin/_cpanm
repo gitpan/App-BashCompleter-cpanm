@@ -1,0 +1,208 @@
+#!perl
+
+our $DATE = '2014-11-10'; # DATE
+our $VERSION = '0.01'; # VERSION
+
+# FRAGMENT id=bash-completion-prog-hints completer=1 for=cpanm
+
+use 5.010001;
+use strict;
+use warnings;
+
+use Complete::Util qw(complete_array_elem complete_file);
+use Getopt::Long::Complete qw(GetOptionsWithCompletion);
+use List::MoreUtils qw(uniq);
+
+die "This script is for bash completion only\n"
+    unless $ENV{COMP_LINE};
+
+my $noop = sub {};
+
+# complete with list of installed modules
+my $comp_installed_mods = sub {
+    require Complete::Module;
+    Complete::Module::complete_module(word=>$_[0]);
+};
+
+# complete with installable stuff
+my $comp_installable = sub {
+    require Complete::Module;
+    [uniq(sort(
+        # tarballs & dirs
+        @{ complete_file(
+            filter => sub { /\.(zip|tar\.gz|tar\.bz2)$/i || (-d $_) },
+            word   => $_[0],
+        ) },
+        # installed modules (e.g. when upgrading)
+        @{ Complete::Module::complete_module(
+            word   => $_[0],
+        ) },
+        # TODO module name can be suffixed with '@<version>'
+        # TODO: remote stuffs?
+    ))];
+};
+
+my $comp_file = sub {
+    require Complete::Util;
+    Complete::Util::complete_file(word=>$_[0]);
+};
+
+# this is taken from App::cpanminus::script and should be updated from time to
+# time.
+GetOptionsWithCompletion(
+    sub {
+        my %args  = @_;
+        my $type      = $args{type};
+        my $word      = $args{word};
+        if ($type eq 'arg') {
+            my $seen_opts = $args{seen_opts};
+            if ($seen_opts->{'--uninstall'} || $seen_opts->{'--reinstall'}) {
+                return $comp_installed_mods->($word);
+            } else {
+                return $comp_installable->($word);
+            }
+        } elsif ($type eq 'optval') {
+            my $ospec = $args{ospec};
+            my $opt   = $args{opt};
+            if ($ospec eq 'l|local-lib=s' ||
+                    $ospec eq 'L|local-lib-contained=s') {
+                return complete_file(filter=>'d', word=>$word);
+            } elsif ($ospec eq 'format=s') {
+                return complete_array_elem(
+                    array=>[qw/tree json yaml dists/], word=>$word);
+            } elsif ($ospec eq 'cpanfile=s') {
+                return complete_file(word=>$word);
+            }
+        }
+        return [];
+    },
+    'f|force'   => $noop,
+    'n|notest!' => $noop,
+    'test-only' => $noop,
+    'S|sudo!'   => $noop,
+    'v|verbose' => $noop,
+    'verify!'   => $noop,
+    'q|quiet!'  => $noop,
+    'h|help'    => $noop,
+    'V|version' => $noop,
+    'perl=s'          => $noop,
+    'l|local-lib=s'   => $noop,
+    'L|local-lib-contained=s' => $noop,
+    'self-contained!' => $noop,
+    'mirror=s@'       => $noop,
+    'mirror-only!'    => $noop,
+    'mirror-index=s'  => $noop,
+    'cpanmetadb=s'    => $noop,
+    'cascade-search!' => $noop,
+    'prompt!'         => $noop,
+    'installdeps'     => $noop,
+    'skip-installed!' => $noop,
+    'skip-satisfied!' => $noop,
+    'reinstall'       => $noop,
+    'interactive!'    => $noop,
+    'i|install'       => $noop,
+    'info'            => $noop,
+    'look'            => $noop,
+    'U|uninstall'     => $noop,
+    'self-upgrade'    => $noop,
+    'uninst-shadows!' => $noop,
+    'lwp!'    => $noop,
+    'wget!'   => $noop,
+    'curl!'   => $noop,
+    'auto-cleanup=s' => $noop,
+    'man-pages!' => $noop,
+    'scandeps'   => $noop,
+    'showdeps'   => $noop,
+    'format=s'   => $noop,
+    'save-dists=s' => $noop,
+    'skip-configure!' => $noop,
+    'dev!'       => $noop,
+    'metacpan!'  => $noop,
+    'report-perl-version!' => $noop,
+    'configure-timeout=i' => $noop,
+    'build-timeout=i' => $noop,
+    'test-timeout=i' => $noop,
+    'with-develop' => $noop,
+    'without-develop' => $noop,
+    'with-feature=s' => $noop,
+    'without-feature=s' => $noop,
+    'with-all-features' => $noop,
+    'pp|pureperl!' => $noop,
+    "cpanfile=s" => $noop,
+    #$self->install_type_handlers,
+    #$self->build_args_handlers,
+);
+
+# ABSTRACT: Completer for cpanm
+# PODNAME: _cpanm
+
+__END__
+
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+_cpanm - Completer for cpanm
+
+=head1 VERSION
+
+This document describes version 0.01 of _cpanm (from Perl distribution App-BashCompleter-cpanm), released on 2014-11-10.
+
+=head1 SYNOPSIS
+
+To install, install this module and then in your bash (and/or bash startup
+file):
+
+ complete -C _cpanm cpanm
+
+or, you can use L<bash-complete-program> to manage the above for you.
+
+Now L<cpanm> has bash completion:
+
+ % cpanm --s<tab>
+ % cpanm --uninstall "Text::A<tab>
+
+=head1 TODO
+
+=head1 FAQ
+
+=head2 Why does "Foo::Bar" complete to "Foo::Foo::Bar"?
+
+That is, when we want to complete a module name that contains a double colon,
+the completion repeats the full module name instead of completing it.
+
+Colon is problematic because by default it is a word breaking character in bash.
+This means, in this command. The workaround is to use quotes, e.g.:
+
+ % cpanm -U "Text:<tab>
+
+=head1 HOMEPAGE
+
+Please visit the project's homepage at L<https://metacpan.org/release/App-BashCompleter-cpanm>.
+
+=head1 SOURCE
+
+Source repository is at L<https://github.com/perlancar/perl-App-BashCompleter-cpanm>.
+
+=head1 BUGS
+
+Please report any bugs or feature requests on the bugtracker website L<https://rt.cpan.org/Public/Dist/Display.html?Name=App-BashCompleter-cpanm>
+
+When submitting a bug or request, please include a test-file or a
+patch to an existing test-file that illustrates the bug or desired
+feature.
+
+=head1 AUTHOR
+
+perlancar <perlancar@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2014 by perlancar@cpan.org.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut

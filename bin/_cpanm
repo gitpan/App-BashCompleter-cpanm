@@ -1,7 +1,7 @@
 #!perl
 
 our $DATE = '2014-11-10'; # DATE
-our $VERSION = '0.01'; # VERSION
+our $VERSION = '0.02'; # VERSION
 
 # FRAGMENT id=bash-completion-prog-hints completer=1 for=cpanm
 
@@ -148,7 +148,7 @@ _cpanm - Completer for cpanm
 
 =head1 VERSION
 
-This document describes version 0.01 of _cpanm (from Perl distribution App-BashCompleter-cpanm), released on 2014-11-10.
+This document describes version 0.02 of _cpanm (from Perl distribution App-BashCompleter-cpanm), released on 2014-11-10.
 
 =head1 SYNOPSIS
 

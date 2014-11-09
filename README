@@ -2,11 +2,17 @@ NAME
     App::BashCompleter::cpanm - Bash completion for cpanm
 
 VERSION
-    This document describes version 0.01 of App::BashCompleter::cpanm (from
+    This document describes version 0.02 of App::BashCompleter::cpanm (from
     Perl distribution App-BashCompleter-cpanm), released on 2014-11-10.
 
 SYNOPSIS
     See _cpanm included in this distribution.
+
+SEE ALSO
+    Bash::Completion::Plugins::cpanm, which focuses on completing module
+    name remotely using MetaCPAN API. This module, on the other hand,
+    focuses on completing "cpanm" command-line options. Remote module
+    completion is not implemented yet.
 
 HOMEPAGE
     Please visit the project's homepage at
